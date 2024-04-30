@@ -58,7 +58,6 @@ View(tdata)
 #Print the filled data frame
   print(tdata_fill)
   
-View(tdata_fill)
   
 # Round the values in the "cases" column to 1 decimal place
   tdata_fill <-tdata_fill %>%
