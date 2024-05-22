@@ -19,7 +19,9 @@ pacman::p_load(
   broom,
   kableExtra,
   corrplot,
-  Hmisc
+  Hmisc,
+  flextable,
+  officer
 )
 
 #Importing and viewing data------------------------------------------------------------------------
