@@ -48,12 +48,18 @@ glimpse(mdata)
 View(mdata)
 
 #Summarizing and Grouping data---------------------------------------------------------------- 
-#determine mean of cases per state and year so as to fill in missing values in "cases" column
+describe(mdata)
+#determine mean of cases per state and year 
 mean_cases <- mdata %>%
   group_by(state, year) %>%
   summarise(mean_cases = mean(cases)) %>%
   print()
 
+#table of all variables for the whole period with mean and SD
+mdata %>% select(!c(month, year)) %>% 
+  tbl_summary(by = state, statistic = list 
+  (all_continuous() ~ "{mean} ({sd})" ), digits = all_continuous() ~2) %>%
+  add_p() %>% add_overall() 
 
 # Round the values in the "cases" column to 1 decimal place
 # mdata <-mdata %>%
@@ -96,6 +102,7 @@ print(monthmean_table)
 
 View(monthmean_table)
 
+
 #Data Visualization-------------------------------------------------------------------------------------
 
 #Determination of data distribution 
@@ -133,7 +140,7 @@ ggplot(data = mdata, aes(x = month_year, y = cases, fill = as.factor(year))) +
   facet_wrap(~ state) +
   labs(x = "Month", y = "Cases", title = "Cases by Month and Year") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-  scale_fill_discrete(name = "Year")
+  scale_fill_discrete(name = "Year") + theme_bw()
 
 
 # #side by side bar chart: Number of cases per month across states
@@ -148,60 +155,70 @@ ggplot(data = mdata, aes(x = month, y = cases, fill = state)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~ year) +
   labs(title = "Monthly Case Count Across States") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+theme_bw()
 
 #line graph of cases by month across years
 ggplot(data = mdata, aes(x = month, y = cases, group = interaction(state, year), color = year)) + 
-  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "cases", title = "Cases by Month") 
+  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "cases", title = "Cases by Month") + 
+  theme_bw()
 
 
 #Visualization of climate data 
 
 #line graph of temperature by month across years
 ggplot(data = mdata, aes(x = month, y = m_temp, group = interaction(state, year), color = year)) + 
-  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "temperature", title = "Temperature by Month") 
+  geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "temperature", title = "Temperature by Month") +
+  theme_bw()
 
 #line graph of precipitation by month across years
 ggplot(data = mdata, aes(x = month, y = m_precip, group = interaction(state, year), color = year)) + 
-  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "precipitation", title = "Precipitation by Month")
+  geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "precipitation", title = "Precipitation by Month") +
+  theme_bw()
 
 #line graph of humidity by month across years
 ggplot(data = mdata, aes(x = month, y = m_humid, group = interaction(state, year), color = year)) + 
-  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "humidity", title = "Humidity by Month")
+  geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "humidity", title = "Humidity by Month") +
+  theme_bw()
 
 #Assessing the relationship between variables----------------------------------------------------------------------------------------------
 
 #Scatter plots (relationship between continuous variables)
 
 #cases versus precipitation  
-ggplot(data = mdata, aes(x = m_precip, y = cases, color = year)) + geom_point() +
+ggplot(data = mdata, aes(x = m_precip, y = cases, color = year)) + geom_point(size=3) +
   facet_wrap(~ state) +
-  labs(x = "precipitation", y = "cases", title = "Cases against Precipitation by State")
+  labs(x = "precipitation", y = "cases", title = "Cases against Precipitation by State") +
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus precipitation cover  
 ggplot(data = mdata, aes(x = m_precov, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "precipitation cover", y = "cases", title = "Cases against Precipitation cover by State")
+  labs(x = "precipitation cover", y = "cases", title = "Cases against Precipitation cover by State") +
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus humidity  
 ggplot(data = mdata, aes(x = m_humid, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "humidity", y = "cases", title = "Cases against humidity by State")
+  labs(x = "humidity", y = "cases", title = "Cases against humidity by State") +
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus temperature  
 ggplot(data = mdata, aes(x = m_temp, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "temperature", y = "cases", title = "Cases against Temperature by State")
+  labs(x = "temperature", y = "cases", title = "Cases against Temperature by State") +
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus minimum temperature
 ggplot(data = mdata, aes(x = m_tempmin, y = cases, color = state)) + geom_point() +
   facet_wrap(~ year) +
-  labs(x = "minimum temperature", y = "cases", title = "Cases against Minimum Temperature by year")
+  labs(x = "minimum temperature", y = "cases", title = "Cases against Minimum Temperature by year") +
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus maximum temperature
 ggplot(data = mdata, aes(x = m_tempmax, y = cases, color = state)) + geom_point() +
   facet_wrap(~ year) +
-  labs(x = "maximum temperature", y = "cases", title = "Cases against Maximum Temperature by year")
+  labs(x = "maximum temperature", y = "cases", title = "Cases against Maximum Temperature by year")+
+  geom_smooth(method =lm, se = F) + theme_bw()
 
 
 #Correlation analysis---------------------------------------------------------------------------------------------
@@ -220,6 +237,7 @@ correlation_table <- mdata %>%
   group_by(state, year) %>%
   do(calculate_group_correlations(.))
 print(correlation_table)
+
 
 #test code###################
 calculate_group_correlations <- function(mdata) {
@@ -253,7 +271,30 @@ print(correlation_table)
 
 View(correlation_table)
 
+#test code for autocorrealtion
+mdata %>% 
+  ## keep the variables we are interested 
+  select(month, cases, m_temp) %>% 
+  ## change your data in to long format
+  pivot_longer(
+    ## use epiweek as your key
+    !month,
+    ## move column names to the new "measure" column
+    names_to = "measure", 
+    ## move cell values to the new "values" column
+    values_to = "value") %>% 
+  ## create a plot with the dataset above
+  ## plot epiweek on the x axis and values (counts/celsius) on the y 
+  ggplot(aes(x = month, y = value)) + 
+  ## create a separate plot for temperate and case counts 
+  ## let them set their own y-axes
+  facet_grid(measure ~ ., scales = "free_y") +
+  ## plot both as a line
+  geom_point() + geom_line()
+
+
 #end of test code#########
+
 # Apply the function to create a grouped correlation table by state and year
 correlation_table <- mdata %>%
   group_by(state, year) %>%
