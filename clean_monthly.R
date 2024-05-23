@@ -153,16 +153,17 @@ ggplot(data = mdata, aes(x = month_year, y = cases, fill = as.factor(year))) +
 mdata$month <- factor(mdata$month, levels = month.name)
 
 # Create the plot with vertical month labels
-ggplot(data = mdata, aes(x = month, y = cases, fill = state)) +
+ggplot(data = mdata, aes(x = cases, y = month, fill = state)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~ year) +
   labs(title = "Monthly Case Count Across States") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+theme_bw()
 
 #line graph of cases by month across years
+
 ggplot(data = mdata, aes(x = month, y = cases, group = interaction(state, year), color = year)) + 
   geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "cases", title = "Cases by Month") + 
-  theme_bw()
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 
 #Visualization of climate data 
@@ -170,17 +171,17 @@ ggplot(data = mdata, aes(x = month, y = cases, group = interaction(state, year),
 #line graph of temperature by month across years
 ggplot(data = mdata, aes(x = month, y = m_temp, group = interaction(state, year), color = year)) + 
   geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "temperature", title = "Temperature by Month") +
-  theme_bw()
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 #line graph of precipitation by month across years
 ggplot(data = mdata, aes(x = month, y = m_precip, group = interaction(state, year), color = year)) + 
   geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "precipitation", title = "Precipitation by Month") +
-  theme_bw()
+  theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 #line graph of humidity by month across years
 ggplot(data = mdata, aes(x = month, y = m_humid, group = interaction(state, year), color = year)) + 
   geom_line() + geom_point() + facet_wrap(~ state) + labs(x = "Month", y = "humidity", title = "Humidity by Month") +
-  theme_bw()
+  theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 #Assessing the relationship between variables----------------------------------------------------------------------------------------------
 
@@ -211,14 +212,14 @@ ggplot(data = mdata, aes(x = m_temp, y = cases, color = year)) + geom_point() +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus minimum temperature
-ggplot(data = mdata, aes(x = m_tempmin, y = cases, color = state)) + geom_point() +
-  facet_wrap(~ year) +
+ggplot(data = mdata, aes(x = m_tempmin, y = cases, color = year)) + geom_point() +
+  facet_wrap(~ state) +
   labs(x = "minimum temperature", y = "cases", title = "Cases against Minimum Temperature by year") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus maximum temperature
-ggplot(data = mdata, aes(x = m_tempmax, y = cases, color = state)) + geom_point() +
-  facet_wrap(~ year) +
+ggplot(data = mdata, aes(x = m_tempmax, y = cases, color = year)) + geom_point() +
+  facet_wrap(~ state) +
   labs(x = "maximum temperature", y = "cases", title = "Cases against Maximum Temperature by year")+
   geom_smooth(method =lm, se = F) + theme_bw()
 
@@ -237,7 +238,8 @@ calculate_group_correlations <- function(mdata) {
 #applying the function to create a grouped correlation table by state and year
 correlation_table <- mdata %>%
   group_by(state, year) %>%
-  do(calculate_group_correlations(.))
+  do(calculate_group_correlations(.) )
+  
 print(correlation_table)
 
 
@@ -301,7 +303,7 @@ mdata %>%
 correlation_table <- mdata %>%
   group_by(state, year) %>%
   do(calculate_group_correlations(.))
-
+  
 # Print correlation table with correlation coefficients and p-values
 print(correlation_table)
 
@@ -336,4 +338,32 @@ correlation_results <- correlation_table %>%
 print(correlation_results)
 
 View(correlation_results)
+--------------------------------------------------------------------------------------------------
+  
+  tbl_strata <-
+  mdata %>% select(!c(month)) %>%
+  mutate(year = paste("Year", year)) %>%
+  tbl_strata(
+    strata= year,
+    ~tbl_summary(.x, by = state, statistic = all_continuous() ~ "{mean} ({sd}")%>%
+      add_p() %>% 
+      modify_header(all_stat_cols() ~ "**{level}**"),
+   theme_gtsummary_compact() )
+print(tbl_strata)
 
+ggsave("tbl_strata.png")
+doc <- read_docx()
+doc <- doc %>%
+  body_add_img(src= "tbl_strata.png", width = 6, height = 4, style = "centered" )
+print(doc, target = "plot_document.docx")
+
+
+
+
+
+
+
+
+
+
+ 
