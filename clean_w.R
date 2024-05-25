@@ -25,7 +25,8 @@ class(tdata)
 
 #Data Cleaning----------------------------------------------------------------------------------
  tdata <- tdata %>%
-   clean_names() %>%
+   
+  clean_names() %>%
    
  rename( w_tempmax = tempmaxw,
            w_tempmin = tempminw, 
@@ -154,9 +155,34 @@ print(histogram)
   
 #line graph of cases by epiweek across years
   ggplot(data = tdata_fill, aes(x = epiweek, y = cases, group = interaction(state, year), color = year)) + 
-    geom_line() + facet_wrap(~ state) + labs(x = "Epiweek", y = "cases", title = "Cases by Epiweek") 
+    geom_line() + facet_wrap(~ state) + labs(x = "Epiweek", y = "cases", title = "Cases by Epiweek") +
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
   
-
+  
+  epiweek_levels <- as.numeric(levels(tdata_fill$epiweek))
+  
+  # Determine breaks (e.g., every 4th epiweek)
+  breaks <- epiweek_levels[seq(1, length(epiweek_levels), by = 3)]
+  
+  ggplot(data = tdata_fill, aes(x = epiweek, y = cases, group = interaction(state, year), color = year)) + 
+    geom_line() + 
+    facet_wrap(~ state) + 
+    labs(x = "Epiweek", y = "cases", title = "Case count by Epiweek across years") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_x_discrete(breaks = breaks)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
           #Visualization of climate data 
   
 #line graph of temperature by epiweek across years

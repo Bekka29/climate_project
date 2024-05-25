@@ -104,6 +104,26 @@ print(monthmean_table)
 
 View(monthmean_table)
 
+#combined table of means 
+
+tbl_strata <-
+  mdata %>% select(!c(month)) %>%
+  mutate(year = paste("Year", year)) %>%
+  tbl_strata(
+    strata= year,
+    ~tbl_summary(.x, by = state, statistic = all_continuous() ~ "{mean} ({sd}")%>%
+      add_p() %>% 
+      modify_header(all_stat_cols() ~ "**{level}**"),
+    theme_gtsummary_compact() )
+print(tbl_strata)
+
+ggsave("tbl_strata.png")
+doc <- read_docx()
+doc <- doc %>%
+  body_add_img(src= "tbl_strata.png", width = 6, height = 4, style = "centered" )
+print(doc, target = "plot_document.docx")
+
+
 
 #Data Visualization-------------------------------------------------------------------------------------
 
@@ -156,13 +176,13 @@ mdata$month <- factor(mdata$month, levels = month.name)
 ggplot(data = mdata, aes(x = cases, y = month, fill = state)) +
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~ year) +
-  labs(title = "Monthly Case Count Across States") +
+  labs(title = "Monthly Case Count across States") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+theme_bw()
 
 #line graph of cases by month across years
 
 ggplot(data = mdata, aes(x = month, y = cases, group = interaction(state, year), color = year)) + 
-  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "cases", title = "Cases by Month") + 
+  geom_line() + facet_wrap(~ state) + labs(x = "Month", y = "cases", title = "Monthly Case count across years") + 
   theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 
@@ -190,37 +210,37 @@ ggplot(data = mdata, aes(x = month, y = m_humid, group = interaction(state, year
 #cases versus precipitation  
 ggplot(data = mdata, aes(x = m_precip, y = cases, color = year)) + geom_point(size=3) +
   facet_wrap(~ state) +
-  labs(x = "precipitation", y = "cases", title = "Cases against Precipitation by State") +
+  labs(x = "precipitation", y = "cases", title = "Monthly Case count against Precipitation across years") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus precipitation cover  
 ggplot(data = mdata, aes(x = m_precov, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "precipitation cover", y = "cases", title = "Cases against Precipitation cover by State") +
+  labs(x = "precipitation cover", y = "cases", title = "Monthly Case count against Precipitation cover across years") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus humidity  
 ggplot(data = mdata, aes(x = m_humid, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "humidity", y = "cases", title = "Cases against humidity by State") +
+  labs(x = "humidity", y = "cases", title = "Monthly Case count  against Humidity across years") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus temperature  
 ggplot(data = mdata, aes(x = m_temp, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "temperature", y = "cases", title = "Cases against Temperature by State") +
+  labs(x = "temperature", y = "cases", title = "Monthly Case count against Average temperature across years") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus minimum temperature
 ggplot(data = mdata, aes(x = m_tempmin, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "minimum temperature", y = "cases", title = "Cases against Minimum Temperature by year") +
+  labs(x = "minimum temperature", y = "cases", title = "Monthly Case count against Minimum Temperature across years") +
   geom_smooth(method =lm, se = F) + theme_bw()
 
 #cases versus maximum temperature
 ggplot(data = mdata, aes(x = m_tempmax, y = cases, color = year)) + geom_point() +
   facet_wrap(~ state) +
-  labs(x = "maximum temperature", y = "cases", title = "Cases against Maximum Temperature by year")+
+  labs(x = "maximum temperature", y = "cases", title = "Monthly Case count against Maximum Temperature across years")+
   geom_smooth(method =lm, se = F) + theme_bw()
 
 
@@ -245,35 +265,100 @@ print(correlation_table)
 
 #test code###################
 calculate_group_correlations <- function(mdata) {
+  # Select relevant columns
+  selected_data <- mdata %>%
+    select(cases, m_tempmin, m_temp, m_tempmax, m_humid, m_precip, m_precov)
+  
+  # Calculate Spearman correlations with p-values using rcorr
+  correlation_matrix <- rcorr(as.matrix(selected_data), type = "spearman")
+  
+  # Extract correlation coefficients and p-values
+  correlations <- as.data.frame(correlation_matrix$r)
+  p_values <- as.data.frame(correlation_matrix$P)
+  
+  # Reshape data from wide to long format
+  correlations_long <- correlations %>%
+    rownames_to_column(var = "Variable1") %>%
+    gather(key = "Variable2", value = "Correlation", -Variable1)
+  
+  p_values_long <- p_values %>%
+    rownames_to_column(var = "Variable1") %>%
+    gather(key = "Variable2", value = "P_Value", -Variable1)
+  
+  # Merge correlations and p-values
+  results <- merge(correlations_long, p_values_long, by = c("Variable1", "Variable2"))
+  
+  return(results)
+}
+
+correlation_table1 <- mdata %>%
+  group_by(state, year) %>%
+  do(calculate_group_correlations(.))
+
+
+print(correlation_table1)
+View(correlation_table1)
+################################################################
+# Function to calculate correlations with p-values
+calculate_group_correlations <- function(mdata) {
+  # Select relevant columns
+  selected_data <- mdata %>%
+    select(cases, m_tempmin, m_temp, m_tempmax, m_humid, m_precip, m_precov)
+  
+  # Calculate Spearman correlations with p-values using rcorr
+  correlation_matrix <- rcorr(as.matrix(selected_data), type = "spearman")
+  
+  # Extract correlation coefficients and p-values
+  correlations <- as.data.frame(correlation_matrix$r)
+  p_values <- as.data.frame(correlation_matrix$P)
+  
+  # Reshape data from wide to long format
+  correlations_long <- correlations %>%
+    rownames_to_column(var = "Variable1") %>%
+    pivot_longer(-Variable1, names_to = "Variable2", values_to = "Correlation")
+  
+  p_values_long <- p_values %>%
+    rownames_to_column(var = "Variable1") %>%
+    pivot_longer(-Variable1, names_to = "Variable2", values_to = "P_Value")
+  
+  # Merge correlations and p-values
+  results <- merge(correlations_long, p_values_long, by = c("Variable1", "Variable2"))
+  
+  return(results)
+}
+
+# Applying the function to create a grouped correlation table by state
+correlation_table1 <- mdata %>%
+  group_by(state) %>%
+  do(calculate_group_correlations(.)) %>%
+  ungroup()
+
+# Print and view the correlation table
+print(correlation_table1)
+View(correlation_table1)
+###################################################################
+
+#the code above worked and returned a table
+
+
+calculate_group_correlations <- function(mdata) {
   correlations <- mdata %>%
     select(cases, m_tempmin, m_temp, m_tempmax, m_humid, m_precip, m_precov) %>%
     correlate(method = "spearman")
-  
-  # Calculate p-values for correlation coefficients
-  p_values <- sapply(correlations$correlation, function(correlation_coefficient) {
-    cor_test <- cor.test(correlation_coefficient)
-    return(cor_test$p.value)
-  })
-  
-  # Combine correlation coefficients and p-values into a data frame
-  result <- data.frame(correlation = correlations$correlation, p_value = p_values)
-  
-  return(result)
+  return(correlations)
 }
+#applying the function to create a grouped correlation table by state and year
+correlation_table3 <- mdata %>%
+  group_by(state) %>%
+  do(calculate_group_correlations(.) )
 
-# Apply the function to create a grouped correlation table by state and year
-correlation_table <- mdata %>%
-  group_by(state, year) %>%
-  do({
-    correlations <- calculate_group_correlations(.data)
-    correlations
-  })
-
-# Print correlation table with correlation coefficients and p-values
-print(correlation_table)
+print(correlation_table3)
+View(correlation_table3)
 
 
-View(correlation_table)
+
+
+
 
 #test code for autocorrealtion
 mdata %>% 
@@ -338,25 +423,6 @@ correlation_results <- correlation_table %>%
 print(correlation_results)
 
 View(correlation_results)
---------------------------------------------------------------------------------------------------
-  
-  tbl_strata <-
-  mdata %>% select(!c(month)) %>%
-  mutate(year = paste("Year", year)) %>%
-  tbl_strata(
-    strata= year,
-    ~tbl_summary(.x, by = state, statistic = all_continuous() ~ "{mean} ({sd}")%>%
-      add_p() %>% 
-      modify_header(all_stat_cols() ~ "**{level}**"),
-   theme_gtsummary_compact() )
-print(tbl_strata)
-
-ggsave("tbl_strata.png")
-doc <- read_docx()
-doc <- doc %>%
-  body_add_img(src= "tbl_strata.png", width = 6, height = 4, style = "centered" )
-print(doc, target = "plot_document.docx")
-
 
 
 
