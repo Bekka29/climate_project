@@ -19,7 +19,7 @@ pacman::p_load(
 
 #Importing and viewing data------------------------------------------------------------------------
 library(readxl)
-tdata <- read_excel("wlfdata.xlsx")
+tdata <- read_excel("weeklydata.xlsx")
 View(tdata)
 class(tdata)
 

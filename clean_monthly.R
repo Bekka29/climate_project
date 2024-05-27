@@ -26,7 +26,7 @@ pacman::p_load(
 
 #Importing and viewing data------------------------------------------------------------------------
 library(readxl)
-monthly_data <- read_excel("mlfdata.xlsx")
+monthly_data <- read_excel("monthlydata.xlsx")
 View(monthly_data)
 glimpse(monthly_data)
 
@@ -57,7 +57,7 @@ mean_cases <- mdata %>%
   summarise(mean_cases = mean(cases)) %>%
   print()
 
-#table of all variables for the whole period with mean and SD
+#table of all variables for the whole period with mean and SD by state only
 mdata %>% select(!c(month, year)) %>% 
   tbl_summary(by = state, statistic = list 
   (all_continuous() ~ "{mean} ({sd})" ), digits = all_continuous() ~2) %>%
@@ -70,7 +70,7 @@ mdata %>% select(!c(month, year)) %>%
 # 
 # View(mdata)
 
-#determine mean and standard deviation of climate variables  
+#determine mean and standard deviation of climate variables by state and year  
 mean_climate <- mdata  %>%
   group_by(state,year) %>%
   summarise( meanm_tempmin = mean(m_tempmin),
@@ -94,7 +94,7 @@ standard_deviations <- mdata %>%
 
 print(standard_deviations)
 
-#create table for mean and standard deviations
+#create table for mean and standard deviations grouped by state and year
 
 #Merge mean cases and mean climate, standard deviations 
 monthmean_table <- mean_cases %>%
@@ -104,7 +104,7 @@ print(monthmean_table)
 
 View(monthmean_table)
 
-#combined table of means 
+#combined table of means of variables grouped by year and state 
 
 tbl_strata <-
   mdata %>% select(!c(month)) %>%
