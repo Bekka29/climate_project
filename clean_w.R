@@ -122,12 +122,6 @@ print(histogram)
     geom_bar(stat = "identity") +
     facet_wrap(~ state) +
     labs(x = "Epiweek", y = "Cases", title = "Cases by Epiweek")
-  
-# #stacked bar chart of cases by epiweek
-#   ggplot(data = tdata_fill, aes(x = epiweek, y = cases, fill = year)) +
-#     geom_bar(stat = "identity") +
-#     facet_wrap(~ state) +
-#     labs(x = "Epiweek", y = "cases", title = "Cases by Epiweek per Year") 
 
 #side by side bar chart: Number of cases per epiweek across states
   ggplot(data = tdata, aes(x = epiweek, y = cases, fill = state))+ geom_bar (stat ="identity", position = "dodge") + 
@@ -140,8 +134,7 @@ print(histogram)
   
 #line graph of cases by epiweek across years  
   epiweek_levels <- as.numeric(levels(tdata$epiweek))
-  
-  #Determine breaks (e.g., every 4th epiweek)
+  #Determine breaks (every 4th epiweek)
   breaks <- epiweek_levels[seq(1, length(epiweek_levels), by = 3)]
   
   ggplot(data = tdata, aes(x = epiweek, y = cases, group = interaction(state, year), color = year)) + 
@@ -155,7 +148,7 @@ print(histogram)
   
 #side by side barchart of cases per epiweek
   
-  #Determine breaks (e.g., every 4th epiweek)
+  #Determine breaks (every 4th epiweek)
   breaks <- epiweek_levels[seq(1, length(epiweek_levels), by = 3)]
   
   # barchart with vertical month labels
@@ -164,10 +157,8 @@ print(histogram)
     facet_wrap(~ year) +
     labs(title = "Case Count by Epiweek") +
     theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1))+theme_bw() +
-    scale_x_discrete(breaks = breaks) +
-    scale_y_continuous(breaks = seq(0, max(tdata$cases), by =5))
-  
-  
+    scale_x_discrete(breaks = breaks) + scale_fill_discrete(name = "Year") + theme_bw() + 
+    scale_fill_brewer(palette = "Set1") 
   
   
           #Visualization of climate data 
