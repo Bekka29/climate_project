@@ -44,7 +44,8 @@ mdata <- monthly_data %>%
 mdata$state <- as.factor(mdata$state)
 mdata$year <- as.factor(mdata$year)
 mdata$cases <- as.numeric(mdata$cases)
-mdata$month <- as.factor(mdata$month)
+#mdata$month <- as.factor(mdata$month)
+mdata$month <- factor(mdata$month, levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
 
 glimpse(mdata)
 View(mdata)
@@ -140,11 +141,12 @@ ggplot(mdata_summary, aes(x = factor(year), y = total_cases, fill = state)) +
 #   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 # # Create a new variable combining month and year
 # mdata$month_year <- with(mdata, interaction(month, year, drop = TRUE))
-# 
 # # Reorder the levels of month_year
 # mdata$month_year <- factor(mdata$month_year, levels = unique(mdata$month_year))
 # Bar chart with vertical month labels# Reorder the levels of the month variable
 # mdata$month <- factor(mdata$month, levels = month.name)
+
+
 
 # Bar chart with vertical month labels
 ggplot(data = mdata, aes(x = cases, y = month, fill = state)) +
@@ -152,7 +154,7 @@ ggplot(data = mdata, aes(x = cases, y = month, fill = state)) +
   facet_wrap(~ year) +
   labs(title = "Monthly Case Count across States") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+theme_bw() +
-  scale_fill_discrete(name = "Year") + theme_bw() + scale_fill_brewer(palette = "Dark2")
+  theme_bw() + scale_fill_brewer(palette = "Dark2")
 
 #line graph of cases by month across years
 ggplot(data = mdata, aes(x = month, y = cases, group = interaction(state, year), color = year)) + 
