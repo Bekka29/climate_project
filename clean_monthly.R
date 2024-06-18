@@ -84,12 +84,6 @@ standard_deviations <- mdata %>%
             sd_m_precov = sd(m_precov))
 print(standard_deviations)
 
-# #create table for mean and standard deviations by state and year
-#   #Merge mean cases and mean climate, standard deviations 
-# monthmean_table <- mean_cases %>%
-#   left_join(mean_climate, by = c("state", "year")) %>%
-#   left_join(standard_deviations, by = c("state", "year"))
-# print(monthmean_table)
 
 
 #Table of annual means of variables grouped by state with p-values
@@ -101,7 +95,7 @@ tbl_strata <-
     ~tbl_summary(.x, by = state, statistic = all_continuous() ~ "{mean} ({sd}")%>%
       add_p() %>% 
       modify_header(all_stat_cols() ~ "**{level}**"),
-    theme_gtsummary_compact() )
+      theme_gtsummary_compact() )
 print(tbl_strata)
 
 
@@ -130,22 +124,7 @@ print(histogram)
 ggplot(mdata_summary, aes(x = factor(year), y = total_cases, fill = state)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Total Case Count by State and Year", x = "Year", y = "Total Cases") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Dark2")
-
-# Create a bar chart with vertical month, total cases by month
-# ggplot(data = mdata, aes(x = month, y = cases)) +
-#   geom_bar(stat = "identity", width = 0.5) +
-#   facet_wrap(~ state) +
-#   labs(x = "Month", y = "Cases", title = "Cases by Month") +
-#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
-# # Create a new variable combining month and year
-# mdata$month_year <- with(mdata, interaction(month, year, drop = TRUE))
-# # Reorder the levels of month_year
-# mdata$month_year <- factor(mdata$month_year, levels = unique(mdata$month_year))
-# Bar chart with vertical month labels# Reorder the levels of the month variable
-# mdata$month <- factor(mdata$month, levels = month.name)
-
+  theme_minimal() + scale_fill_brewer(palette = "Dark2")
 
 
 # Bar chart with vertical month labels
@@ -246,7 +225,7 @@ ggplot(data = mdata, aes(x = m_tempmax, y = cases, color = year)) + geom_point(s
 
 #Correlation table for data grouped by state and year WITHOUT p-values
 
-#Creating a function that will return correlations for each group
+#Funtion to return correlations for each group
 calculate_group_correlations <- function(mdata) {
   correlations <- mdata %>%
     select(cases, m_tempmin, m_temp, m_tempmax, m_humid, m_precip, m_precov) %>%
@@ -262,7 +241,7 @@ print(correlation_table)
 
 
 #######################################################
-#correlation table for data grouped by BOTH year and state WITH p-values
+#correlation table for data grouped by BOTH state and year WITH p-values
 calculate_group_correlations <- function(mdata) {
   # Select relevant columns
   selected_data <- mdata %>%
@@ -339,25 +318,6 @@ correlation_table2 <- mdata %>%
 print(correlation_table2)
 View(correlation_table2)
 
-
-###################################################################
-#correlation of data grouped  by state only without p-values
-
-calculate_group_correlations <- function(mdata) {
-  correlations <- mdata %>%
-    select(cases, m_tempmin, m_temp, m_tempmax, m_humid, m_precip, m_precov) %>%
-    correlate(method = "spearman")
-  return(correlations)
-}
-#applying the function to create a grouped correlation table by state ONLY
-correlation_table3 <- mdata %>%
-  group_by(state) %>%
-  do(calculate_group_correlations(.) )
-
-print(correlation_table3)
-View(correlation_table3)
-
-
 ###################################################
 
 #Correlation table for ungrouped data  
@@ -372,29 +332,6 @@ print(correlation_results4)
 View(correlation_results4)
 
 
-
-###################################
-#test code for autocorrealtion##########
-mdata %>% 
-  ## keep the variables we are interested 
-  select(month, cases, m_temp) %>% 
-  ## change your data in to long format
-  pivot_longer(
-    ## use epiweek as your key
-    !month,
-    ## move column names to the new "measure" column
-    names_to = "measure", 
-    ## move cell values to the new "values" column
-    values_to = "value") %>% 
-  ## create a plot with the dataset above
-  ## plot epiweek on the x axis and values (counts/celsius) on the y 
-  ggplot(aes(x = month, y = value)) + 
-  ## create a separate plot for temperate and case counts 
-  ## let them set their own y-axes
-  facet_grid(measure ~ ., scales = "free_y") +
-  ## plot both as a line
-  geom_point() + geom_line()
-#end of test code#############
 
 
 

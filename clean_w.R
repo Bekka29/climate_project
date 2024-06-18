@@ -44,26 +44,6 @@ class(tdata)
 View(tdata)
 
 #Summarizing and Grouping data---------------------------------------------------------------- 
-#determine mean of cases per state and year so as to fill in missing values in "cases" column
-#  mean_cases <- tdata %>%
-#     group_by(state, year) %>%
-#     summarise(mean_cases = mean(cases, na.rm = TRUE)) %>%
-#     print()
-#  
-# #Merge mean_cases with tdata based on state and year to fill missing values in "cases" column
-#   tdata_fill <-tdata %>%
-#     left_join(mean_cases, by =c("state", "year")) %>%
-#     mutate(cases = ifelse(is.na(cases), mean_cases, cases)) %>%
-#     select(-mean_cases)
-# #Print the filled data frame
-#   print(tdata_fill)
-#   
-# # Round the values in the "cases" column to 1 decimal place
-#   tdata_fill <-tdata_fill %>%
-#     mutate(cases = round(cases,1))
-#   print(tdata_fill)
-#    
-# View(tdata_fill)
 
 #determine mean and standard deviation of climate variables  
 mean_data <- tdata  %>%
@@ -221,7 +201,7 @@ print(histogram)
 #Spearman's correlation for direction and magnitude of relationship (data does not have a normal distribution
 
 #correlation table grouped by state and year
- #Creating a function to return correlations for each group
+ #Function to return correlations for each group
   calculate_group_correlations <- function(tdata) {
     correlations <- tdata %>%
       select(cases, w_tempmin, w_temp, w_tempmax, w_humid, w_precip, w_precov) %>%
